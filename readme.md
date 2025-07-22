@@ -1,5 +1,6 @@
-⚠️ Peringatan (Disclaimer)
-Proyek ini adalah submission untuk kelas "Belajar Membuat Aplikasi Back-End untuk Pemula" di Dicoding. Repositori ini dibuat hanya untuk tujuan edukasi dan sebagai referensi pribadi.
+# ⚠️ Peringatan (Disclaimer)
+
+Proyek ini adalah submission untuk kelas "Belajar Fundamental Back-End dengan JavaScript" di Dicoding. Repositori ini dibuat hanya untuk tujuan edukasi dan sebagai referensi pribadi.
 
 Sangat tidak disarankan untuk melakukan copy-paste secara langsung pada kode ini untuk menyelesaikan tugas Anda. Setiap submission akan diperiksa oleh sistem plagiarism checker. Tindakan plagiarisme dapat mengakibatkan submission Anda ditolak dan akun Dicoding Anda bisa di-banned.
 

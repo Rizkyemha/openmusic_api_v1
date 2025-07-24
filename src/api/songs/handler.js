@@ -3,7 +3,7 @@ const { createSongId } = require("../../utils/nanoId");
 class SongsHandler {
 	constructor(service, validator) {
 		this._service = service;
-		// this._validator = validator;
+		this._validator = validator;
 
 		this.addSongHandler = this.addSongHandler.bind(this);
 		this.getSongsHandler = this.getSongsHandler.bind(this);
@@ -12,8 +12,9 @@ class SongsHandler {
 		this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this);
 	}
 
-	addSongHandler(request, h) {
-		const id = createSongId();
+	async addSongHandler(request, h) {
+		this._validator(request.payload);
+		const id = await this._service.addSong(request.payload);
 
 		const response = h.response({
 			status: "success",
@@ -26,60 +27,47 @@ class SongsHandler {
 		return response;
 	}
 
-	getSongsHandler() {
+	async getSongsHandler(request) {
+		const songs = await this._service.getSongs(request.query);
+
 		return {
 			status: "success",
 			data: {
-				songs: [
-					{
-						id: "song-1",
-						title: "title",
-						performer: "performer",
-					},
-					{
-						id: "song-2",
-						title: "title",
-						performer: "performer",
-					},
-					{
-						id: "song-3",
-						title: "title",
-						performer: "performer",
-					},
-				],
+				songs,
 			},
 		};
 	}
 
-	getSongByIdHandler(request) {
+	async getSongByIdHandler(request) {
 		const { id } = request.params;
 
-		const song = {
-			id,
-			title: "title",
-			year: "year",
-			performer: "performer",
-			genre: "genre",
-			duration: "duration",
-			albumId: "album-1",
-		};
+		const song = await this._service.getSongById(id);
+		console.log(song);
 
 		return {
 			status: "success",
 			data: {
-				song: song,
+				song,
 			},
 		};
 	}
 
-	editSongByIdHandler(request) {
+	async editSongByIdHandler(request) {
+		this._validator(request.payload);
+		const { id } = request.params;
+
+		await this._service.editSongById(id, request.payload);
+
 		return {
 			status: "success",
 			message: "Song berhasil diperbarui",
 		};
 	}
 
-	deleteSongByIdHandler(request) {
+	async deleteSongByIdHandler(request) {
+		const { id } = request.params;
+
+		await this._service.deleteSongById(id);
 		return {
 			status: "success",
 			message: "Song berhasil dihapus",

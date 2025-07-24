@@ -1,5 +1,7 @@
 const { createSongId } = require("../../utils/nanoId");
 const { mapDBSongToModel } = require("../../utils/index");
+const NotFoundError = require("../../utils/exceptions/NotFoundError");
+const InvariantError = require("../../utils/exceptions/InvariantError");
 class SongsService {
 	constructor(pool) {
 		this._pool = pool;
@@ -16,29 +18,55 @@ class SongsService {
 		const result = await this._pool.query(query);
 
 		if (!result.rows.length) {
-			throw new Error("Album gagal ditambahkan");
+			throw new InvariantError("Lagu gagal ditambahkan");
 		}
 
 		return result.rows[0].id;
 	}
 
-	async getSongs() {
-		const query = "SELECT id, title, performer FROM songs";
+	async getSongs({ title, performer }) {
+		let baseQuery = "SELECT id, title, performer FROM songs";
+
+		const condition = [];
+		const values = [];
+
+		if (title) {
+			condition.push(`title ILIKE $${condition.length + 1}`);
+			values.push(`%${title}%`);
+		}
+
+		if (performer) {
+			condition.push(`performer ILIKE $${condition.length + 1}`);
+			values.push(`%${performer}%`);
+		}
+
+		if (condition.length > 0) {
+			baseQuery += ` WHERE ${condition.join(" AND ")}`;
+		}
+
+		const query = {
+			text: baseQuery,
+			values: values,
+		};
+
 		const result = await this._pool.query(query);
 		return result.rows;
 	}
 
 	async getSongById(id) {
 		const query = {
-			text: "SELECT (id, title, year, performer, genre, duration, album_id) FROM songs WHERE id = $1",
+			text: "SELECT id, title, year, performer, genre, duration, album_id FROM songs WHERE id = $1",
 			values: [id],
 		};
 
 		const result = await this._pool.query(query);
 
 		if (!result.rows.length) {
-			throw new Error("Song tidak ditemukan");
+			throw new NotFoundError("Song tidak ditemukan");
 		}
+
+		const yahaha = result.rows.map(mapDBSongToModel);
+		console.log("yahaha : ", yahaha);
 
 		return result.rows.map(mapDBSongToModel)[0];
 	}
@@ -55,7 +83,7 @@ class SongsService {
 		const result = await this._pool.query(query);
 
 		if (!result.rows.length) {
-			throw new Error("Gagal memperbarui song. Id tidak ditemukan");
+			throw new NotFoundError("Gagal memperbarui song. Id tidak ditemukan");
 		}
 	}
 
@@ -68,7 +96,7 @@ class SongsService {
 		const result = await this._pool.query(query);
 
 		if (!result.rows.length) {
-			throw new Error("Song gagal dihapus. Id tidak ditemukan");
+			throw new NotFoundError("Song gagal dihapus. Id tidak ditemukan");
 		}
 	}
 }

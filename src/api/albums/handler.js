@@ -3,7 +3,7 @@ const { createAlbumId } = require("../../utils/nanoId");
 class AlbumsHandler {
 	constructor(service, validator) {
 		this._service = service;
-		//this._validator = validator;
+		this._validator = validator;
 
 		this.addAlbumHandler = this.addAlbumHandler.bind(this);
 		this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
@@ -12,12 +12,14 @@ class AlbumsHandler {
 	}
 
 	async addAlbumHandler(request, h) {
-		const { name, year } = request.payload;
+		this._validator(request.payload);
+
+		const id = await this._service.addAlbum(request.payload);
 
 		const response = h.response({
 			status: "success",
 			data: {
-				albumId: createAlbumId(),
+				albumId: id,
 			},
 		});
 
@@ -28,21 +30,21 @@ class AlbumsHandler {
 	async getAlbumByIdHandler(request) {
 		const { id } = request.params;
 
+		const album = await this._service.getAlbumById(id);
+
 		return {
 			status: "success",
 			data: {
-				album: {
-					id,
-					name: "example album name",
-					year: "example album year",
-				},
+				album,
 			},
 		};
 	}
 
 	async editAlbumByIdHandler(request, h) {
+		this._validator(request.payload);
 		const { id } = request.params;
-		const { name, year } = request.payload;
+
+		await this._service.editAlbumById(id, request.payload);
 
 		return {
 			status: "success",
@@ -52,6 +54,8 @@ class AlbumsHandler {
 
 	async deleteAlbumByIdHandler(request, h) {
 		const { id } = request.params;
+
+		await this._service.deleteAlbumById(id);
 
 		return {
 			status: "success",

@@ -1,4 +1,6 @@
 const { createAlbumId } = require("../../utils/nanoId");
+const NotFoundError = require("../../utils/exceptions/NotFoundError");
+const InvariantError = require("../../utils/exceptions/InvariantError");
 
 class AlbumsService {
 	constructor(pool) {
@@ -15,7 +17,7 @@ class AlbumsService {
 		const result = await this._pool.query(query);
 
 		if (!result.rows.length) {
-			throw new Error("Album gagal ditambahkan");
+			throw new InvariantError("Album gagal ditambahkan");
 		}
 
 		return result.rows[0].id;
@@ -23,14 +25,33 @@ class AlbumsService {
 
 	async getAlbumById(id) {
 		const query = {
-			text: "SELECT (id, name, year) FROM albums WHERE id = $1",
+			text: `
+				SELECT
+					albums.id,
+					albums.name,
+					albums.year,
+				COALESCE(
+						JSON_AGG(
+								JSON_BUILD_OBJECT('id', songs.id, 'title', songs.title, 'performer', songs.performer)
+						) FILTER (WHERE songs.id IS NOT NULL),
+						'[]'::json
+				) AS songs
+				FROM
+						albums
+				LEFT JOIN
+						songs ON songs.album_id = albums.id
+				WHERE
+						albums.id = $1
+				GROUP BY
+						albums.id;
+			`,
 			values: [id],
 		};
 
 		const result = await this._pool.query(query);
 
 		if (!result.rows.length) {
-			throw new Error("Album tidak ditemukan");
+			throw new NotFoundError("Album tidak ditemukan");
 		}
 
 		return result.rows[0];
@@ -45,7 +66,7 @@ class AlbumsService {
 		const result = await this._pool.query(query);
 
 		if (!result.rows.length) {
-			throw new Error("Gagal memperbarui album. Id tidak ditemukan");
+			throw new NotFoundError("Gagal memperbarui album. Id tidak ditemukan");
 		}
 	}
 
@@ -58,7 +79,7 @@ class AlbumsService {
 		const result = await this._pool.query(query);
 
 		if (!result.rows.length) {
-			throw new Error("Album gagal dihapus. Id tidak ditemukan");
+			throw new NotFoundError("Album gagal dihapus. Id tidak ditemukan");
 		}
 	}
 }

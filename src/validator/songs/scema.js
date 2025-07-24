@@ -1,4 +1,4 @@
-const Joy = require("../../utils/joi");
+const Joi = require("../../utils/joi");
 const {
 	titleScema,
 	yearScema,
@@ -8,13 +8,13 @@ const {
 	albumIdScema,
 } = require("../schemaElement");
 
-const SongsScema = Joy.object({
+const songsScema = Joi.object({
 	title: titleScema,
 	year: yearScema,
 	genre: genreScema,
 	performer: performerScema,
-	durationScema: durationScema,
+	duration: durationScema,
 	albumId: albumIdScema,
 });
 
-module.exports = SongsScema;
+module.exports = songsScema;

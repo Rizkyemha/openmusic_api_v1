@@ -1,7 +1,7 @@
-const Joy = require("../../utils/joi");
+const Joi = require("../../utils/joi");
 const { nameScema, yearScema } = require("../schemaElement");
 
-const albumsSchema = Joy.object({
+const albumsSchema = Joi.object({
 	name: nameScema,
 	year: yearScema,
 });
